@@ -1,5 +1,5 @@
 from sqlalchemy import delete, select, update
-from database import TaskData, new_session
+from db.tasks_database import TaskData, new_session
 from shemas.task_scemas import AddTask, GetTask
 from sqlalchemy.exc import NoResultFound
 

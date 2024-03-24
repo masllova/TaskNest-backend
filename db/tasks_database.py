@@ -28,10 +28,10 @@ class TaskData(Model):
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
-async def create_tables():
+async def create_tasks_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Model.metadata.create_all)
 
-async def delete_tables():
+async def delete_tasks_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Model.metadata.drop_all)

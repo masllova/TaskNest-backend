@@ -1,5 +1,5 @@
 from sqlalchemy import delete, select, update
-from database import TaskData, new_session
+from db.tasks_database import TaskData, new_session
 from shemas.comment_scemas import AddComment, GetComment, UpdateComment
 from sqlalchemy.exc import NoResultFound
 from datetime import datetime

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from typing import Annotated
 from shemas.comment_scemas import AddComment, GetComment, CommentAddResponse, UpdateComment
-from methods.comment.comment_repository import CommentRepository
+from methods.task.comment.comment_repository import CommentRepository
 
 router = APIRouter(
     prefix='/comment',

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from typing import Annotated, Optional
 from shemas.user_scemas import UserCreate, AuthResponse, UserBase, GetUser
 from methods.user.user_repository import UserRepository
@@ -20,14 +20,16 @@ async def check_user_authorization(
     ) -> Optional[AuthResponse]:
     return await UserRepository.check_user_authorization(data)
 
-@router.get('/{user_id}')
-async def get_user_info(user_id: int) -> Optional[GetUser]:
-    user = await UserRepository.get_user_info(user_id)
+@router.get('/')
+async def get_user_info(token: str = Header(None), user_id: Optional[int] = None) -> Optional[GetUser]:
+    user = await UserRepository.get_user_info(token, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     return user
 
-@router.put('/{user_id}')
-async def update_user_info_by_id(user_id: int, info: Annotated[UserBase, Depends()]) -> bool:
-    success = await UserRepository.update_user_info_by_id(user_id, info)
+@router.put('/')
+async def update_user_info(info: Annotated[UserBase, Depends()], token: str = Header(None)) -> bool:
+    success = await UserRepository.update_user_info(token, info)
     if not success:
         raise HTTPException(status_code=404, detail="User not found")
     return success

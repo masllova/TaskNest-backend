@@ -1,6 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel
 from datetime import date
+from enum import Enum
 
 class UserBase(BaseModel):
     name: Optional[str] = None
@@ -19,5 +20,12 @@ class GetUser(UserBase):
         orm_mode = True
 
 class AuthResponse(BaseModel):
-    isVerified: bool
-    user: Optional[GetUser]
+    message: str
+    jwt: Optional[str] = None
+    user: Optional[GetUser] = None
+
+class AuthStatus(Enum):
+    NOT_FOUND = 'not_found'
+    INCORRECT_PASSWORD = 'incorrect_password'
+    WELCOME = 'welcome'
+    SUCCESSFUL = 'successful'

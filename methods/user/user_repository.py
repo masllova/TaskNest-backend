@@ -5,7 +5,7 @@ from shemas.user_scemas import *
 from db.user.authorization_database import Authorization, new_session as new_auth_session
 from db.user.user_database import User, new_session as new_user_session
 from passlib.hash import sha256_crypt
-from managers.jwt import JWTManager
+from managers.jwt_manager import JWTManager
 
 class UserRepository:
 
@@ -83,7 +83,7 @@ class UserRepository:
                     user_info = GetUser.model_validate(user.to_dict())
                     return user_info
                 return None
-        elif token:
+        else:
             try:
                 decoded_user_id = JWTManager.decode_token(token)
                 if decoded_user_id:

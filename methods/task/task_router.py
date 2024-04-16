@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends
-from typing import Annotated
-from shemas.task_scemas import AddTask, GetTask, TaskAddResponse
+from fastapi import APIRouter, Depends, Header
+from typing import Annotated, Optional
+from shemas.task_scemas import AddTask, GetTask, UpdateTask, TaskAddResponse
 from methods.task.task_repository import TaskRepository
 
 router = APIRouter(
@@ -9,25 +9,34 @@ router = APIRouter(
 )
 
 @router.get('')
-async def get_tasks() -> list[GetTask]:
-    tasks = await TaskRepository.get_all()
+async def get_tasks(token: str = Header(None)) -> list[GetTask]:
+    tasks = await TaskRepository.get_all(token)
     return tasks
 
 @router.post('')
 async def add_tasks(
-    task: Annotated[AddTask, Depends()]
-) -> TaskAddResponse:
-    task_id = await TaskRepository.add_one(task)
-    return TaskAddResponse(task_id=task_id)
+    task: Annotated[AddTask, Depends()],
+    token: str = Header(None),
+    id: Optional[int] = None
+) -> bool:
+    success = await TaskRepository.add_one(token, task, id)
+    return success
 
 @router.delete('/{task_id}')
-async def delete_task(task_id: int) -> bool:
-    success = await TaskRepository.delete_by_id(task_id)
+async def delete_task(
+    task_id: int,
+    token: str = Header(None)
+) -> bool:
+    success = await TaskRepository.delete_by_id(token, task_id)
     return success
 
 @router.put('/{task_id}')
-async def update_task(task_id: int, task: Annotated[AddTask, Depends()]) -> bool:
-    success = await TaskRepository.update_by_id(task_id, task)
+async def update_task(
+    task_id: int, 
+    task: Annotated[UpdateTask, Depends()],
+    token: str = Header(None)
+) -> bool:
+    success = await TaskRepository.update_by_id(token, task_id, task)
     if not success:
         raise HTTPException(status_code=404, detail="Task not found")
     return success

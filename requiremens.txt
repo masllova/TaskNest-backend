@@ -3,3 +3,5 @@ uvicorn
 sqlalchemy
 aiosqlite
 passlib
+pymongo[srv]
+pyjwt

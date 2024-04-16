@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/Users/aleksandramaslova/Documents/vscode/venv"
+VIRTUAL_ENV="/Users/aleksandramaslova/Documents/vscode/task_manager/venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

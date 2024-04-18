@@ -13,7 +13,6 @@ class UserRepository:
     async def check_user_authorization(cls, user_create: UserCreate) -> AuthResponse:
         user_session = new_user_session()
         auth_session = new_auth_session()
-
         try:
             user_stmt = select(User).where(User.mail == user_create.mail)
             user_result = await user_session.execute(user_stmt)
@@ -65,7 +64,7 @@ class UserRepository:
             return AuthResponse(
                 message=AuthStatus.WELCOME.value,
                 jwt=JWTManager.generate_token(new_user.id)
-                )
+            )
         finally:
             await user_session.close()
             await auth_session.close()

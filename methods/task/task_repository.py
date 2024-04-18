@@ -43,12 +43,10 @@ class TaskRepository:
                     return True
                 client.close()
         except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="Expired token")
+            raise JWTManager.ETError
         except jwt.InvalidTokenError:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise JWTManager.ITError
         return False
-
-   
 
     @classmethod
     async def get_all(cls, token: str) -> list[GetTask]:
@@ -62,15 +60,14 @@ class TaskRepository:
                 task_data = collection.find_one({"user_id": decoded_user_id})
 
                 if task_data:
-                    print("Task data from MongoDB:", task_data)
                     tasks_models = task_data["tasks_list"]
                     tasks_scemas = [GetTask.from_dict(task) for task in tasks_models]
                     return tasks_scemas
                 client.close()
         except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="Expired token")
+            raise JWTManager.ETError
         except jwt.InvalidTokenError:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise JWTManager.ITError
         return []
 
     @classmethod
@@ -96,9 +93,9 @@ class TaskRepository:
                     return False 
                 client.close()
         except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="Expired token")
+            raise JWTManager.ETError
         except jwt.InvalidTokenError:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise JWTManager.ITError
         return False
 
     @classmethod
@@ -121,9 +118,9 @@ class TaskRepository:
                     return False
                 client.close()
         except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="Expired token")
+            raise JWTManager.ETError
         except jwt.InvalidTokenError:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise JWTManager>ITError
         return False
 
         async def get_user_name_by_id(id: int) -> str:

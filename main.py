@@ -9,10 +9,10 @@ from methods.user.user_router import router as user_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await delete_tasks_tables()
-    await delete_authorization_tables()
-    await delete_user_tables()
-    print('cleared')
+    # await delete_tasks_tables()
+    # await delete_authorization_tables()
+    # await delete_user_tables()
+    # print('cleared')
     await create_tasks_tables()
     await create_authorization_tables()
     await create_user_tables()

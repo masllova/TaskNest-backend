@@ -6,6 +6,7 @@ from bson.objectid import ObjectId
 from schemes.task_schemes import AddTask, GetTask, UpdateTask, Author
 from managers.jwt_manager import JWTManager
 from managers.user_data_manager import UserDataManager
+from managers.search_manager import SearchManager
 from typing import Optional
 import jwt
 
@@ -87,15 +88,14 @@ class TaskRepository:
                 task_data = collection.find_one({"user_id": decoded_user_id, "tasks_list.id": task_id})
 
                 if task_data:
-                    for task in task_data["tasks_list"]:
-                        if task["id"] == task_id:
-                            updated_task = GetTask.from_dict(task).update(data).to_dict()
-                            task.update(updated_task)
-                            break
-                    collection.update_one({"_id": ObjectId(task_data["_id"])}, {"$set": task_data})
-                    return True
-                else:
-                    return False 
+                    task_index = binary_search(task_data["tasks_list"], "id", task_id)
+                    if task_index is not None:
+                        task = task_data["tasks_list"][task_index]
+                        updated_task = GetTask.from_dict(task).update(data).to_dict()
+                        task.update(updated_task)
+                        collection.update_one({"_id": ObjectId(task_data["_id"])}, {"$set": task_data})
+                        return True
+                return False
                 client.close()
         except jwt.ExpiredSignatureError:
             raise JWTManager.ETError
@@ -115,12 +115,12 @@ class TaskRepository:
                 task_data = collection.find_one({"user_id": decoded_user_id, "tasks_list.id": task_id})
 
                 if task_data:
-                    updated_tasks_list = [task for task in task_data["tasks_list"] if task["id"] != task_id]
-                    task_data["tasks_list"] = updated_tasks_list
-                    collection.update_one({"_id": ObjectId(task_data["_id"])}, {"$set": task_data})
-                    return True
-                else:
-                    return False
+                    task_index = binary_search(task_data["tasks_list"], "id", task_id)
+                    if task_index is not None:
+                        task_data["tasks_list"].pop(task_index)
+                        collection.update_one({"_id": ObjectId(task_data["_id"])}, {"$set": task_data})
+                        return True
+                return False
                 client.close()
         except jwt.ExpiredSignatureError:
             raise JWTManager.ETError

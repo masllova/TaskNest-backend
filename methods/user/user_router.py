@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Header
 from typing import Annotated, Optional
-from shemas.user_scemas import UserCreate, AuthResponse, UserBase, GetUser
+from schemes.user_schemes import UserCreate, AuthResponse, UserBase, GetUser
 from methods.user.user_repository import UserRepository
 
 router = APIRouter(

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Header
 from typing import Annotated, Optional
-from shemas.task_scemas import AddTask, GetTask, UpdateTask, TaskAddResponse
+from schemes.task_schemes import AddTask, GetTask, UpdateTask, TaskAddResponse
 from methods.task.task_repository import TaskRepository
 
 router = APIRouter(
@@ -19,9 +19,9 @@ async def get_tasks(
 async def add_tasks(
     task: Annotated[AddTask, Depends()],
     token: str = Header(None),
-    id: Optional[int] = None
+    user_id: Optional[int] = None
 ) -> bool:
-    success = await TaskRepository.add_one(token, task, id)
+    success = await TaskRepository.add_one(token, task, user_id)
     return success
 
 @router.delete('/{task_id}')

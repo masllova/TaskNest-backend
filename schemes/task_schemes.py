@@ -1,7 +1,8 @@
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 from datetime import datetime
-from shemas.comment_scemas import GetComment
+from schemes.comment_schemes import GetComment, UpdateComment
+from schemes.author_scheme import Author
 
 class UpdateTask(BaseModel):
     name: Optional[str] = None
@@ -16,16 +17,12 @@ class AddTask(UpdateTask):
 
 class TaskAddResponse(BaseModel):
     ok: bool = True
-    task_id: int
-
-class Author(BaseModel):
-    id: int
-    name: Optional[str]
+    dict_id: int
 
 class GetTask(AddTask):
     id: int
     comments: List[GetComment]
-    author: Author
+    author: Optional[Author] = None
 
     def __init__(self, id: int, task: AddTask, author: Author, comments: [GetComment]):
         super().__init__(
@@ -53,6 +50,20 @@ class GetTask(AddTask):
             self.description = data.description
         return self
 
+    def add_comment(self, data: GetComment):
+        self.comments.append(data)
+        return self
+
+    def update_comment(self, data: GetComment):
+        for comment in self.comments:
+            if comment.id == data.id:
+                comment.creation_date = data.creation_date
+                comment.description = data.description
+                comment.is_updated = data.is_updated
+                return self
+        return None
+
+
     def to_dict(self) -> dict:
         data = self.dict()
         data['creation_date'] = self.creation_date.isoformat()
@@ -62,36 +73,29 @@ class GetTask(AddTask):
             data['deadline'] = None
 
         if self.comments:
-            data['comments'] = [comment.dict() for comment in self.comments]
+            data['comments'] = [comment_dict.to_dict() for comment_dict in self.comments]
         else:
             data['comments'] = []
 
-        data['author'] = self.author.dict()
+        if self.author:
+            data['author'] = self.author.dict()
+        else:
+            data['author'] = None
         return data
 
     @staticmethod
-    def from_dict(task: Dict[str, Any]):
+    def from_dict(dict: Dict[str, Any]):
         return GetTask(
-            id=task.get('id'),
+            id=dict.get('id'),
             task=AddTask(
-                name=task.get('name'),
-                is_completed=task.get('is_completed'),
-                color_hex=task.get('color_hex'),
-                creation_date=task.get('creation_date'),
-                deadline=task.get('deadline'),
-                description=task.get('description')
+                name=dict.get('name'),
+                is_completed=dict.get('is_completed'),
+                color_hex=dict.get('color_hex'),
+                creation_date=dict.get('creation_date'),
+                deadline=dict.get('deadline'),
+                description=dict.get('description')
             ),
-            author=Author(
-                id=task['author'].get('id'),
-                name=task['author'].get('name')
-            ),
-            comments=[
-                GetComment(
-                    id=comment.get('id'),
-                    creation_date=comment.get('creation_date'),
-                    description=comment.get('description'),
-                    is_updated=comment.get('is_updated'),
-                    author=comment.get('author'),
-                ) for comment in task.get('comments', [])
-                ]
+            author=Author.from_dict(dict.get('author')),
+            comments=[GetComment.from_dict(comment_dict) for comment_dict in dict.get('comments', [])]
         )
+

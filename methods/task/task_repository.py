@@ -3,9 +3,9 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import selectinload
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-from db.user.user_database import new_session  as new_user_session
-from shemas.task_scemas import AddTask, GetTask, UpdateTask, Author
+from schemes.task_schemes import AddTask, GetTask, UpdateTask, Author
 from managers.jwt_manager import JWTManager
+from managers.user_data_manager import UserDataManager
 from typing import Optional
 import jwt
 
@@ -21,11 +21,11 @@ class TaskRepository:
 
                 if id is not None:
                     user_id = id
-                    name = get_user_name_by_id(user_id)
-                    author = Author(id=user_id, name=name)
+                    name = await UserDataManager.get_user_name_by_id(decoded_user_id)
+                    author = Author(id=decoded_user_id, name=name)
                 else:
                     user_id = decoded_user_id
-                    author = Author(id=user_id, name=None)
+                    author = None
 
                 task_data = collection.find_one({"user_id": user_id})
 
@@ -122,17 +122,3 @@ class TaskRepository:
         except jwt.InvalidTokenError:
             raise JWTManager>ITError
         return False
-
-        async def get_user_name_by_id(id: int) -> str:
-            user_session = new_user_session()
-            try:
-                user_stmt = select(User).where(User.id == user_create.id)
-                user_result = await user_session.execute(user_stmt)
-                user = user_result.scalars().first()
-
-                if user:
-                    return user.name
-                else:
-                    return 'not found'
-            finally:
-                await user_session.close()

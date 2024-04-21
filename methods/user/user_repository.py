@@ -1,7 +1,7 @@
 from sqlalchemy import select, insert, update, exists
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
-from shemas.user_scemas import *
+from schemes.user_schemes import *
 from db.user.authorization_database import Authorization, new_session as new_auth_session
 from db.user.user_database import User, new_session as new_user_session
 from passlib.hash import sha256_crypt

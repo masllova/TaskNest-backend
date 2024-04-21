@@ -1,82 +1,105 @@
-from sqlalchemy import delete, select, update
-from db.tasks_database import TaskData, new_session
-from shemas.comment_scemas import AddComment, GetComment, UpdateComment
-from sqlalchemy.exc import NoResultFound
-from datetime import datetime
-import json
+from pymongo import MongoClient
+from bson.objectid import ObjectId
+from schemes.comment_schemes import GetComment, UpdateComment
+from schemes.task_schemes import GetTask
+from schemes.author_scheme import Author
+from managers.user_data_manager import UserDataManager
+from managers.jwt_manager import JWTManager
+from typing import Optional
+import jwt
+
 
 class CommentRepository:
     @classmethod
-    async def add_one(cls, data: AddComment, task_id: int) -> int:
-        session = new_session()
-        async with session.begin():
-            query = select(TaskData).where(TaskData.id == task_id)
-            result = await session.execute(query)
-            task = result.scalars().one()
-            id = 0
-            if task.comments:
-                id = len(task.comments)
-            
-            comment_dict = {
-                'id': id,
-                'author': data.author,
-                'author_emoji': data.author_emoji,
-                'creation_date': data.creation_date,
-                'description': data.description,
-                'is_updated': False
-            }
+    async def add_one(cls, token: str, task_id: int, desc: str, user_id: int) -> bool:
+        try:
+            decoded_user_id = JWTManager.decode_token(token)
+            if decoded_user_id:
+                client = MongoClient()
+                db = client.test
+                collection = db["tasksnest-tasks"]
 
-            if task.comments is None:
-                task.comments = [comment_dict]
-            else:
-                task.comments.append(comment_dict)
+                name = await UserDataManager.get_user_name_by_id(decoded_user_id)
+                author = Author(id=decoded_user_id, name=name)
 
-            update_query = update(TaskData).where(TaskData.id == task_id).values(comments=task.comments)
-            await session.execute(update_query)
-            await session.commit()
-            return id
+                task_data = collection.find_one({"user_id": user_id})
 
-
-    @classmethod
-    async def update_by_id(cls, task_id: int, comment_id: int, data: UpdateComment) -> bool:
-        session = new_session()
-        async with session.begin():
-            query = select(TaskData).where(TaskData.id == task_id)
-            result = await session.execute(query)
-            task = result.scalars().one()
-
-            if task and task.comments:
-                for comment in task.comments:
-                    if comment['id'] == comment_id:
-                        comment['creation_date'] = data.creation_date
-                        comment['description'] = data.description
-                        comment['is_updated'] = True
-
-                        update_query = update(TaskData).where(TaskData.id == task_id).values(comments=task.comments)
-                        await session.execute(update_query)
-
-                        await session.commit()
-                        return True
-        return False
-
-    @classmethod
-    async def delete_by_id(cls, task_id: int, comment_id: int) -> bool:
-        session = new_session()
-        async with session.begin():
-            query = select(TaskData).where(TaskData.id == task_id)
-            result = await session.execute(query)
-            task = result.scalars().one()
-
-            if task and task.comments:
-                for index, comment in enumerate(task.comments):
-                    if comment['id'] == comment_id:
-                        del task.comments[index]
-
-                        update_query = update(TaskData).where(TaskData.id == task_id).values(comments=task.comments)
-                        await session.execute(update_query)
-
-                        await session.commit()
-                        return True
+                if task_data:
+                    for task in task_data["tasks_list"]:
+                        if task["id"] == task_id:
+                            comment_count=len(task["comments"])
+                            comment = GetComment(id=comment_count+1, comment=UpdateComment(description=desc), author=author)
+                            updated_task = GetTask.from_dict(task).add_comment(comment).to_dict()
+                            task.update(updated_task)
+                            break
+                    collection.update_one({"_id": ObjectId(task_data["_id"])}, {"$set": task_data})
+                    return True
+                else:   
+                    return False
+                client.close()
+        except jwt.ExpiredSignatureError:
+            raise JWTManager.ETError
+        except jwt.InvalidTokenError:
+            raise JWTManager.ITError
         return False
 
 
+    @classmethod
+    async def update_by_id(cls, token: str, user_id: int, task_id: int, comment_id: int, desc: str) -> bool:
+        try:
+            decoded_user_id = JWTManager.decode_token(token)
+            if decoded_user_id:
+                client = MongoClient()
+                db = client.test
+                collection = db["tasksnest-tasks"]
+
+                task_data = collection.find_one({"user_id": user_id})
+
+                if task_data:
+                    for task in task_data["tasks_list"]:
+                        if task["id"] == task_id:
+                            for comment in task["comments"]:
+                                if comment["id"] == comment_id:
+                                    updated_comment = GetComment.from_dict(comment).update(desc)
+                                    updated_task = GetTask.from_dict(task).update_comment(updated_comment).to_dict()
+                                    task.update(updated_task)
+                                    break
+                    collection.update_one({"_id": ObjectId(task_data["_id"])}, {"$set": task_data})
+                    return True
+                else:   
+                    return False
+                client.close()
+        except jwt.ExpiredSignatureError:
+            raise JWTManager.ETError
+        except jwt.InvalidTokenError:
+            raise JWTManager.ITError
+        return False
+
+    @classmethod
+    async def delete_by_id(cls, token: str, user_id: int, task_id: int, comment_id: int) -> bool:
+        try:
+            decoded_user_id = JWTManager.decode_token(token)
+            if decoded_user_id:
+                client = MongoClient()
+                db = client.test
+                collection = db["tasksnest-tasks"]
+
+                task_data = collection.find_one({"user_id": user_id})
+
+                if task_data:
+                    for task in task_data["tasks_list"]:
+                        if task["id"] == task_id:
+                            for comment in task["comments"]:
+                                if comment["id"] == comment_id:
+                                    task["comments"].remove(comment)
+                                    collection.update_one({"_id": ObjectId(task_data["_id"])}, {"$set": task_data})
+                                    return True
+                    return False
+                else:   
+                    return False
+                client.close()
+        except jwt.ExpiredSignatureError:
+            raise JWTManager.ETError
+        except jwt.InvalidTokenError:
+            raise JWTManager.ITError
+        return False

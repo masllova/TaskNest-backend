@@ -96,7 +96,6 @@ class CommentRepository:
                             collection.update_one({"_id": ObjectId(task_data["_id"])}, {"$set": task_data})
                             return True
                 return False
-
                 client.close()
         except jwt.ExpiredSignatureError:
             raise JWTManager.ETError

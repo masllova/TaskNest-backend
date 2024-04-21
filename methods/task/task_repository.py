@@ -19,7 +19,7 @@ class TaskRepository:
                 db = client.test
                 collection = db["tasksnest-tasks"]
 
-                if id is not None:
+                if id:
                     user_id = id
                     name = await UserDataManager.get_user_name_by_id(decoded_user_id)
                     author = Author(id=decoded_user_id, name=name)
@@ -49,7 +49,7 @@ class TaskRepository:
         return False
 
     @classmethod
-    async def get_all(cls, token: str) -> list[GetTask]:
+    async def get_all(cls, token: str, id: Optional[int] = None) -> list[GetTask]:
         try:
             decoded_user_id = JWTManager.decode_token(token)
             if decoded_user_id:
@@ -57,7 +57,12 @@ class TaskRepository:
                 db = client.test
                 collection = db["tasksnest-tasks"]
 
-                task_data = collection.find_one({"user_id": decoded_user_id})
+                if id:
+                    user_id = id
+                else:
+                    user_id = decoded_user_id
+
+                task_data = collection.find_one({"user_id": user_id})
 
                 if task_data:
                     tasks_models = task_data["tasks_list"]

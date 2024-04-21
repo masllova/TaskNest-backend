@@ -10,9 +10,10 @@ router = APIRouter(
 
 @router.get('')
 async def get_tasks(
-    token: str = Header(None)
+    token: str = Header(None),
+    user_id: Optional[int] = None
 ) -> list[GetTask]:
-    tasks = await TaskRepository.get_all(token)
+    tasks = await TaskRepository.get_all(token, user_id)
     return tasks
 
 @router.post('')

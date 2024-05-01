@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Header
-from schemes.comment_schemes import GetComment, UpdateComment
 from methods.task.comment.comment_repository import CommentRepository
 
 router = APIRouter(

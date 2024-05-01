@@ -3,9 +3,7 @@ from db.group_database import Group, new_session
 from managers.jwt_manager import JWTManager
 from schemes.group_scheme import *
 
-
 class GroupRepository:
-
     @classmethod
     async def create_new_group(cls, token: str, name: str) -> bool:
         try:

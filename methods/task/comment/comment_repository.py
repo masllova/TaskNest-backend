@@ -6,7 +6,6 @@ from schemes.person_scheme import Person
 from managers.user_data_manager import UserDataManager
 from managers.jwt_manager import JWTManager
 from managers.search_manager import SearchManager
-from typing import Optional
 import jwt
 
 

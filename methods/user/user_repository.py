@@ -1,4 +1,4 @@
-from sqlalchemy import select, update, exists
+from sqlalchemy import select
 from typing import Optional
 from schemes.user_schemes import *
 from db.user.authorization_database import Authorization, new_session as new_auth_session

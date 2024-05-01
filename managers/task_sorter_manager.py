@@ -1,6 +1,5 @@
 import threading
 import time
-from typing import List, Dict, Any
 
 class TaskSorter:
     def __init__(self, collection):

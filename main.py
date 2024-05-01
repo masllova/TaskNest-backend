@@ -13,6 +13,8 @@ from methods.user.user_router import router as user_router
 async def lifespan(app: FastAPI):
     await create_authorization_tables()
     await create_user_tables()
+    # await delete_authorization_tables()
+    # await delete_user_tables()
     yield
 
 app = FastAPI(lifespan=lifespan)

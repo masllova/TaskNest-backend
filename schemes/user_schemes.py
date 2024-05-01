@@ -8,6 +8,7 @@ class UserBase(BaseModel):
     emoji: Optional[str] = '👤'
     birthday: Optional[date] = None
     status: Optional[str] = None
+    group_id: Optional[str] = None
 
 class UserCreate(BaseModel):
     mail: str
@@ -15,6 +16,12 @@ class UserCreate(BaseModel):
 
 class GetUser(UserBase):
     id: int
+    completed_tasks: int = 0
+    completed_personal_tasks: int = 0
+    completed_external_tasks: int = 0
+    pending_tasks: int= 0
+    pending_personal_tasks: int = 0
+    pending_external_tasks: int = 0
 
 class AuthResponse(BaseModel):
     message: str

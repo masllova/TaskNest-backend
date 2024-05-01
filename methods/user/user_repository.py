@@ -5,6 +5,8 @@ from db.user.authorization_database import Authorization, new_session as new_aut
 from db.user.user_database import User, new_session as new_user_session
 from passlib.hash import sha256_crypt
 from managers.jwt_manager import JWTManager
+from managers.task_collector_manager import TaskCollector
+import jwt
 
 class UserRepository:
 
@@ -70,38 +72,26 @@ class UserRepository:
 
     @classmethod
     async def get_user_info(cls, token: str, user_id: Optional[int] = None) -> Optional[GetUser]:
-        if user_id:
-            session = new_user_session()
-            try:
+        try:
+            if user_id:
+                query = select(User).where(User.id == user_id)
+            else:
+                decoded_user_id = JWTManager.decode_token(token)
+                if not decoded_user_id:
+                    raise HTTPException(status_code=401, detail="Invalid token")
+                query = select(User).where(User.id == decoded_user_id)
+
+            async with new_user_session() as session:
                 async with session.begin():
-                    query = select(User).where(User.id == user_id)
                     result = await session.execute(query)
                     user = result.scalars().first()
                     if user:
+                        tasks = await TaskCollector.get_all(user.id)
                         user_info = GetUser.model_validate(user.to_dict())
-                        return user_info
-            finally:
-                await session.close()
-            return None
-        else:
-            try:
-                decoded_user_id = JWTManager.decode_token(token)
-                if decoded_user_id:
-                    session = new_user_session()
-                    try:
-                        async with session.begin():
-                            query = select(User).where(User.id == decoded_user_id)
-                            result = await session.execute(query)
-                            user = result.scalars().first()
-                            if user:
-                                user_info = GetUser.model_validate(user.to_dict())
-                                return user_info
-                    finally:
-                        await session.close()
-            except jwt.ExpiredSignatureError:
-                raise HTTPException(status_code=401, detail="Expired token")
-            except jwt.InvalidTokenError:
-                raise HTTPException(status_code=401, detail="Invalid token")
+
+                        return TaskCollector.fill_user_with_task_statistics(user=user_info, tasks=tasks)
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Expired token")
         return None
 
     @classmethod
@@ -124,7 +114,10 @@ class UserRepository:
                                 setattr(user, field, value)
 
                         await session.commit()
-                        return GetUser.model_validate(user.to_dict())
+                        tasks = await TaskCollector.get_all(user.id)
+                        user_info = GetUser.model_validate(user.to_dict())
+
+                        return TaskCollector.fill_user_with_task_statistics(user=user_info, tasks=tasks)
                 finally:
                     await session.close()
         except jwt.ExpiredSignatureError:

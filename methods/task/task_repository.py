@@ -5,6 +5,7 @@ from schemes.person_scheme import Person
 from managers.jwt_manager import JWTManager
 from managers.search_manager import SearchManager
 from managers.user_data_manager import UserDataManager
+from managers.task_collector_manager import TaskCollector
 from typing import Optional
 import jwt
 
@@ -52,22 +53,11 @@ class TaskRepository:
         try:
             decoded_user_id = JWTManager.decode_token(token)
             if decoded_user_id:
-                client = MongoClient()
-                db = client.test
-                collection = db["tasksnest-tasks"]
-
                 if id:
                     user_id = id
                 else:
                     user_id = decoded_user_id
-
-                task_data = collection.find_one({"user_id": user_id})
-
-                if task_data:
-                    tasks_models = task_data["tasks_list"]
-                    tasks_scemas = [GetTask.from_dict(task) for task in tasks_models]
-                    return tasks_scemas
-                client.close()
+                return await TaskCollector.get_all(id=user_id)
         except jwt.ExpiredSignatureError:
             raise JWTManager.ETError
         except jwt.InvalidTokenError:

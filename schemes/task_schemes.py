@@ -1,8 +1,8 @@
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 from datetime import datetime
-from schemes.comment_schemes import GetComment, UpdateComment
-from schemes.author_scheme import Author
+from schemes.comment_schemes import GetComment
+from schemes.person_scheme import Person
 
 class UpdateTask(BaseModel):
     name: Optional[str] = None
@@ -22,9 +22,9 @@ class TaskAddResponse(BaseModel):
 class GetTask(AddTask):
     id: int
     comments: List[GetComment]
-    author: Optional[Author] = None
+    author: Optional[Person] = None
 
-    def __init__(self, id: int, task: AddTask, author: Author, comments: [GetComment]):
+    def __init__(self, id: int, task: AddTask, author: Person, comments: [GetComment]):
         super().__init__(
             name=task.name,
             is_completed=task.is_completed,
@@ -95,7 +95,7 @@ class GetTask(AddTask):
                 deadline=dict.get('deadline'),
                 description=dict.get('description')
             ),
-            author=Author.from_dict(dict.get('author')),
+            author=Person.from_dict(dict.get('author')),
             comments=[GetComment.from_dict(comment_dict) for comment_dict in dict.get('comments', [])]
         )
 

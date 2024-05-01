@@ -16,9 +16,6 @@ class UserCreate(BaseModel):
 class GetUser(UserBase):
     id: int
 
-    class Config:
-        orm_mode = True
-
 class AuthResponse(BaseModel):
     message: str
     jwt: Optional[str] = None

@@ -34,7 +34,7 @@ async def get_user_info(
 async def update_user_info(
     info: Annotated[UserBase, Depends()], 
     token: str = Header(None)
-) -> bool:
+) -> Optional[GetUser]:
     success = await UserRepository.update_user_info(token, info)
     if not success:
         raise HTTPException(status_code=404, detail="User not found")

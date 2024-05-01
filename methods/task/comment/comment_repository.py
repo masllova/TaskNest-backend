@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 from schemes.comment_schemes import GetComment, UpdateComment
 from schemes.task_schemes import GetTask
-from schemes.author_scheme import Author
+from schemes.person_scheme import Person
 from managers.user_data_manager import UserDataManager
 from managers.jwt_manager import JWTManager
 from managers.search_manager import SearchManager
@@ -20,15 +20,15 @@ class CommentRepository:
                 db = client.test
                 collection = db["tasksnest-tasks"]
 
-                name = await UserDataManager.get_user_name_by_id(decoded_user_id)
-                author = Author(id=decoded_user_id, name=name)
+                info = await UserDataManager.get_user_name_and_emoji_by_id(decoded_user_id)
+                author = Person(id=decoded_user_id, name=info[1:], emoji=info[0])
 
                 task_data = collection.find_one({"user_id": user_id})
 
                 if task_data:
                     task_index = SearchManager.search(task_data["tasks_list"], "id", task_id)
                     if task_index is not None:
-                        task = task_data["tasks_list"][task_index]
+                        task = task_data["tasks_list"][task_index] # проблема тут
                         comment_count=len(task["comments"])
                         comment = GetComment(id=comment_count+1, comment=UpdateComment(description=desc), author=author)
                         updated_task = GetTask.from_dict(task).add_comment(comment).to_dict()

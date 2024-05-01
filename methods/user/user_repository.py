@@ -1,5 +1,4 @@
-from sqlalchemy import select, insert, update, exists
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, update, exists
 from typing import Optional
 from schemes.user_schemes import *
 from db.user.authorization_database import Authorization, new_session as new_auth_session
@@ -69,31 +68,36 @@ class UserRepository:
             await user_session.close()
             await auth_session.close()
 
-    
     @classmethod
     async def get_user_info(cls, token: str, user_id: Optional[int] = None) -> Optional[GetUser]:
         if user_id:
             session = new_user_session()
-            async with session.begin():
-                query = select(User).where(User.id == user_id)
-                result = await session.execute(query)
-                user = result.scalars().first()
-                if user:
-                    user_info = GetUser.model_validate(user.to_dict())
-                    return user_info
-                return None
+            try:
+                async with session.begin():
+                    query = select(User).where(User.id == user_id)
+                    result = await session.execute(query)
+                    user = result.scalars().first()
+                    if user:
+                        user_info = GetUser.model_validate(user.to_dict())
+                        return user_info
+            finally:
+                await session.close()
+            return None
         else:
             try:
                 decoded_user_id = JWTManager.decode_token(token)
                 if decoded_user_id:
                     session = new_user_session()
-                    async with session.begin():
-                        query = select(User).where(User.id == decoded_user_id)
-                        result = await session.execute(query)
-                        user = result.scalars().first()
-                        if user:
-                            user_info = GetUser.model_validate(user.to_dict())
-                            return user_info
+                    try:
+                        async with session.begin():
+                            query = select(User).where(User.id == decoded_user_id)
+                            result = await session.execute(query)
+                            user = result.scalars().first()
+                            if user:
+                                user_info = GetUser.model_validate(user.to_dict())
+                                return user_info
+                    finally:
+                        await session.close()
             except jwt.ExpiredSignatureError:
                 raise HTTPException(status_code=401, detail="Expired token")
             except jwt.InvalidTokenError:
@@ -101,25 +105,31 @@ class UserRepository:
         return None
 
     @classmethod
-    async def update_user_info(cls, token: str, data: UserBase) -> bool:
+    async def update_user_info(cls, token: str, data: UserBase) -> Optional[GetUser]:
         try:
             decoded_user_id = JWTManager.decode_token(token)
             if decoded_user_id:
                 session = new_user_session()
-                async with session.begin():
-                    user_exists_query = exists().where(User.id == decoded_user_id)
-                    user_exists = await session.scalar(select(user_exists_query))
-                    
-                    if not user_exists:
-                        return False
-                    
-                    user_dict = data.dict()
-                    update_query = update(User).where(User.id == decoded_user_id).values(**user_dict)
-                    await session.execute(update_query)
-                    await session.commit()
-                    return True
+                try:
+                    async with session.begin():
+                        user = await session.get(User, decoded_user_id)
+
+                        if not user:
+                            return None
+
+                        user_dict = data.dict(exclude_unset=True)
+
+                        for field, value in user_dict.items():
+                            if value is not None:
+                                setattr(user, field, value)
+
+                        await session.commit()
+                        return GetUser.model_validate(user.to_dict())
+                finally:
+                    await session.close()
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Expired token")
         except jwt.InvalidTokenError:
             raise HTTPException(status_code=401, detail="Invalid token")
-        return False
+        return None
+

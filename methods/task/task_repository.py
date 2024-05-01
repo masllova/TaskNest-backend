@@ -1,12 +1,10 @@
-from sqlalchemy import delete, select, update, desc
-from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import selectinload
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-from schemes.task_schemes import AddTask, GetTask, UpdateTask, Author
+from schemes.task_schemes import AddTask, GetTask, UpdateTask
+from schemes.person_scheme import Person
 from managers.jwt_manager import JWTManager
-from managers.user_data_manager import UserDataManager
 from managers.search_manager import SearchManager
+from managers.user_data_manager import UserDataManager
 from typing import Optional
 import jwt
 
@@ -22,8 +20,8 @@ class TaskRepository:
 
                 if id:
                     user_id = id
-                    name = await UserDataManager.get_user_name_by_id(decoded_user_id)
-                    author = Author(id=decoded_user_id, name=name)
+                    info = await UserDataManager.get_user_name_and_emoji_by_id(decoded_user_id)
+                    author = Person(id=decoded_user_id, name=info[1:], emoji=info[0])
                 else:
                     user_id = decoded_user_id
                     author = None
@@ -88,7 +86,7 @@ class TaskRepository:
                 task_data = collection.find_one({"user_id": decoded_user_id, "tasks_list.id": task_id})
 
                 if task_data:
-                    task_index = binary_search(task_data["tasks_list"], "id", task_id)
+                    task_index = SearchManager.search(task_data["tasks_list"], "id", task_id)
                     if task_index is not None:
                         task = task_data["tasks_list"][task_index]
                         updated_task = GetTask.from_dict(task).update(data).to_dict()
@@ -115,7 +113,7 @@ class TaskRepository:
                 task_data = collection.find_one({"user_id": decoded_user_id, "tasks_list.id": task_id})
 
                 if task_data:
-                    task_index = binary_search(task_data["tasks_list"], "id", task_id)
+                    task_index = SearchManager.search(task_data["tasks_list"], "id", task_id)
                     if task_index is not None:
                         task_data["tasks_list"].pop(task_index)
                         collection.update_one({"_id": ObjectId(task_data["_id"])}, {"$set": task_data})

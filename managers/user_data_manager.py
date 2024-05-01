@@ -2,7 +2,7 @@ from db.user.user_database import User, new_session as new_user_session
 from sqlalchemy import select
 
 class UserDataManager:
-    async def get_user_name_by_id(id: int) -> str:
+    async def get_user_name_and_emoji_by_id(id: int) -> str:
         user_session = new_user_session()
         try:
             user_stmt = select(User).where(User.id == id)
@@ -10,7 +10,7 @@ class UserDataManager:
             user = user_result.scalars().first()
 
             if user:
-                return user.name
+                return user.emoji + user.name
             else:
                 return 'not found'
         finally:

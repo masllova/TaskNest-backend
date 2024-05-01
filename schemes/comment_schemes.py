@@ -1,6 +1,6 @@
 from typing import Dict, Any
-from pydantic import BaseModel, Field
-from schemes.author_scheme import Author
+from pydantic import BaseModel
+from schemes.person_scheme import Person
 from datetime import datetime
 
 class UpdateComment(BaseModel):
@@ -10,9 +10,9 @@ class UpdateComment(BaseModel):
 
 class GetComment(UpdateComment):
     id: int
-    author: Author
+    author: Person
 
-    def __init__(self, id: int, comment: UpdateComment, author: Author):
+    def __init__(self, id: int, comment: UpdateComment, author: Person):
         super().__init__(
             id=id,
             author=author,
@@ -41,7 +41,7 @@ class GetComment(UpdateComment):
                 description=dict.get('description'),
                 is_updated=dict.get('is_updated')
                 ),
-                author=Author.from_dict(dict.get('author'))
+                author=Person.from_dict(dict.get('author'))
         )
 
 

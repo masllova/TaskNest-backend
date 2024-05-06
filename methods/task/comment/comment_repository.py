@@ -19,15 +19,15 @@ class CommentRepository:
                 db = client.test
                 collection = db["tasksnest-tasks"]
 
-                info = await UserDataManager.get_user_name_and_emoji_by_id(decoded_user_id)
-                author = Person(id=decoded_user_id, name=info[1:], emoji=info[0])
+                author = await UserDataManager.get_person_by_id(decoded_user_id)
+                
 
                 task_data = collection.find_one({"user_id": user_id})
 
                 if task_data:
                     task_index = SearchManager.search(task_data["tasks_list"], "id", task_id)
                     if task_index is not None:
-                        task = task_data["tasks_list"][task_index] # проблема тут
+                        task = task_data["tasks_list"][task_index]
                         comment_count=len(task["comments"])
                         comment = GetComment(id=comment_count+1, comment=UpdateComment(description=desc), author=author)
                         updated_task = GetTask.from_dict(task).add_comment(comment).to_dict()

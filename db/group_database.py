@@ -1,6 +1,7 @@
+from sqlalchemy import JSON
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from typing import List, Dict
+from typing import List, Dict, Any
 
 engine = create_async_engine("sqlite+aiosqlite:///groups.db")
 new_session = async_sessionmaker(engine, expire_on_commit=False)
@@ -14,11 +15,15 @@ class Group(Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     admin_id: Mapped[int]
-    users: Mapped[List[Dict[str:any]]]
+    users: Mapped[List[Dict[str,Any]]] = mapped_column(type_=JSON)
 
     def to_dict(self):
-        users = [{'id': user['id'], 'name': user['name'], 'emoji': user['emoji']} for user in self.users]
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name != 'users'} | {'users': users}
+        return {
+            "id": self.id,
+            "name": self.name,
+            "admin_id": self.admin_id,
+            "users": self.users
+            }
 
 async def create_group_tables():
     async with engine.begin() as conn:

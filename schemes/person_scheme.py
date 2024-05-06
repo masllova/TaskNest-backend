@@ -16,4 +16,11 @@ class Person(BaseModel):
             )
         else: 
             return None
+        
+    def to_dict(self) -> Dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "emoji": self.emoji
+        }
 

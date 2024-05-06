@@ -21,8 +21,7 @@ class TaskRepository:
 
                 if id:
                     user_id = id
-                    info = await UserDataManager.get_user_name_and_emoji_by_id(decoded_user_id)
-                    author = Person(id=decoded_user_id, name=info[1:], emoji=info[0])
+                    author = await UserDataManager.get_person_by_id(decoded_user_id)
                 else:
                     user_id = decoded_user_id
                     author = None

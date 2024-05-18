@@ -8,7 +8,7 @@ router = APIRouter(
     tags=['Task']
 )
 
-@router.get('')
+@router.get('/')
 async def get_tasks(
     token: str = Header(None),
     user_id: Optional[int] = None
@@ -16,7 +16,7 @@ async def get_tasks(
     tasks = await TaskRepository.get_all(token, user_id)
     return tasks
 
-@router.post('')
+@router.post('/')
 async def add_tasks(
     task: Annotated[AddTask, Depends()],
     token: str = Header(None),
@@ -25,7 +25,7 @@ async def add_tasks(
     success = await TaskRepository.add_one(token, task, user_id)
     return success
 
-@router.delete('/{task_id}')
+@router.delete('/{task_id}/')
 async def delete_task(
     task_id: int,
     token: str = Header(None)
@@ -33,7 +33,7 @@ async def delete_task(
     success = await TaskRepository.delete_by_id(token, task_id)
     return success
 
-@router.put('/{task_id}')
+@router.put('/{task_id}/')
 async def update_task(
     task_id: int, 
     task: Annotated[UpdateTask, Depends()],

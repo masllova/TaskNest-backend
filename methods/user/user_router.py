@@ -8,13 +8,13 @@ router = APIRouter(
     tags=['User']
 )
 
-@router.post('/registrationtion')
+@router.post('/registrationtion/')
 async def create_new_user(
     data: Annotated[UserCreate, Depends()]
 ) -> AuthResponse:
     return await UserRepository.create_new_user(data)
 
-@router.get('/authorization')
+@router.get('/authorization/')
 async def check_user_authorization(
     data: Annotated[UserCreate, Depends()]
 ) -> Optional[AuthResponse]:

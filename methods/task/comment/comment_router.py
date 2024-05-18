@@ -6,7 +6,7 @@ router = APIRouter(
     tags=['Comment']
 )
 
-@router.post('')
+@router.post('/')
 async def add_comment(
     user_id: int,
     task_id: int,
@@ -16,7 +16,7 @@ async def add_comment(
     success = await CommentRepository.add_one(token, task_id, description, user_id)
     return success
 
-@router.delete('/{task_id}/comment/{comment_id}')
+@router.delete('/{task_id}/comment/{comment_id}/')
 async def delete_comment(
     user_id: int,
     task_id: int,
@@ -26,7 +26,7 @@ async def delete_comment(
     success = await CommentRepository.delete_by_id(token, user_id, task_id, comment_id)
     return success
 
-@router.put('{user_id}/task/{task_id}/comment/{comment_id}')
+@router.put('/task/{task_id}/comment/{comment_id}/')
 async def update_comment(
     user_id: int,
     task_id: int,

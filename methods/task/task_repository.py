@@ -31,7 +31,7 @@ class TaskRepository:
                 if task_data:
                     tasks_count = len(task_data["tasks_list"])
                     task = GetTask(id=tasks_count + 1, task=task, author=author, comments=[])
-                    task_data["tasks_list"].append(task_dict.to_dict())
+                    task_data["tasks_list"].append(task.to_dict())
 
                     collection.update_one({"_id": ObjectId(task_data["_id"])}, {"$set": task_data})
                     client.close()
@@ -85,19 +85,20 @@ class TaskRepository:
                 if task_data:
                     task_index = SearchManager.search(task_data["tasks_list"], "id", task_id)
                     if task_index is not None:
-                        task_data = task_data["tasks_list"][task_index]
-                        task = GetTask.from_dict(task)
+                        task_dict = task_data["tasks_list"][task_index]
+                        task = GetTask.from_dict(task_dict)
 
                         if another_author:
                             if not TaskCollector.check_editing_rights(task=task, id=decoded_user_id):
                                 client.close()
                                 return None   
                         
-                        updated_task = task.update(data).to_dict()
-                        task.update(updated_task)
+                        updated_task = task.update(data)
+                        task_dict.update(updated_task.to_dict())
                         collection.update_one({"_id": ObjectId(task_data["_id"])}, {"$set": task_data})
                         client.close()
-                        return task
+                        print(updated_task)
+                        return updated_task
                 return None
         except jwt.ExpiredSignatureError:
             raise JWTManager.ETError
@@ -127,7 +128,8 @@ class TaskRepository:
                     task_index = SearchManager.search(task_data["tasks_list"], "id", task_id)
                     if task_index is not None:
                         if another_author:
-                            if not TaskCollector.check_editing_rights(task=task_data["tasks_list"][task_index], id=decoded_user_id):
+                            task = GetTask.from_dict(task_data["tasks_list"][task_index])
+                            if not TaskCollector.check_editing_rights(task=task, id=decoded_user_id):
                                 client.close()
                                 return False   
                             

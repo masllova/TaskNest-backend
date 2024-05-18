@@ -21,7 +21,6 @@ class CommentRepository:
 
                 author = await UserDataManager.get_person_by_id(decoded_user_id)
                 
-
                 task_data = collection.find_one({"user_id": user_id})
 
                 if task_data:
@@ -36,7 +35,7 @@ class CommentRepository:
                         collection.update_one({"_id": ObjectId(task_data["_id"])}, {"$set": task_data})
 
                         client.close()
-                        return updated_task
+                        return comment
                 else:  
                     client.close() 
                     return None

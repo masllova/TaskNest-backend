@@ -17,26 +17,24 @@ async def create_new_group(
     return group
 
 @router.get('/')
-async def get_group_by_id(
-    id: int, 
+async def get_user_group_info(
     token: str = Header(None)
 ) -> Optional[GetGroup]:
-    group = await GroupRepository.get_group_by_id(token=token, group_id=id)
+    group = await GroupRepository.get_user_group_info(token=token)
     return group
 
 @router.delete('/')
-async def delete_group(
-    id: int, 
+async def delete_group( 
     token: str = Header(None)
 ) -> bool:
-    success = await GroupRepository.delete_group(token=token, group_id=id)
+    success = await GroupRepository.delete_group(token=token)
     return success
 
 @router.get('/join_code')
 async def generate_join_code(
-    id: int
-) -> GroupCodeResponse:
-    code = await GroupRepository.generate_join_code(group_id=id)
+    token: str = Header(None)
+) -> Optional[GroupCodeResponse]:
+    code = await GroupRepository.generate_join_code(token=token)
     return code
 
 @router.put('/join_code')
@@ -49,27 +47,24 @@ async def join_group(
 
 @router.put('/admin')
 async def change_admin(
-    group_id: int, 
     new_admin_id: int,
     token: str  = Header(None)
 ) -> Optional[GetGroup]:
-    group = await GroupRepository.change_admin(token=token, group_id=group_id, new_admin_id=new_admin_id)
+    group = await GroupRepository.change_admin(token=token, new_admin_id=new_admin_id)
     return group
 
 @router.put('/name')
 async def change_group_name(
-    group_id: int, 
     new_name: str,
     token: str  = Header(None)
 ) -> Optional[GetGroup]:
-    group = await GroupRepository.change_group_name(token=token, group_id=group_id, new_name=new_name)
+    group = await GroupRepository.change_group_name(token=token, new_name=new_name)
     return group
 
 @router.delete('/user')
 async def remove_user_from_group(
-    group_id: int, 
     user_id: int,
     token: str  = Header(None)
 ) -> Optional[GetGroup]:
-    group = await GroupRepository.remove_user_from_group(token=token, group_id=group_id, user_id=user_id)
+    group = await GroupRepository.remove_user_from_group(token=token, user_id=user_id)
     return group

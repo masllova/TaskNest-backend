@@ -18,6 +18,20 @@ class UserDataManager:
         finally:
             await user_session.close()
 
+    async def get_user_group_id(id: int) -> Optional[int]:
+        user_session = new_user_session()
+        try:
+            user_stmt = select(User).where(User.id == id)
+            user_result = await user_session.execute(user_stmt)
+            user = user_result.scalars().first()
+
+            if user:
+                return user.group_id
+            else:
+                return None
+        finally:
+            await user_session.close()
+
     async def change_group_info(user_id: int, group_id: Optional[int]):
         user_session = new_user_session()
         try:

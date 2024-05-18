@@ -1,7 +1,6 @@
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from schemes.task_schemes import AddTask, GetTask, UpdateTask
-from schemes.person_scheme import Person
 from managers.jwt_manager import JWTManager
 from managers.search_manager import SearchManager
 from managers.user_data_manager import UserDataManager

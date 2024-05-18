@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, Header
-from typing import Annotated, Optional
+from fastapi import APIRouter, Header
+from typing import Optional
 from schemes.group_scheme import GetGroup, GroupCodeResponse
 from methods.group.group_repository import GroupRepository
 

@@ -38,3 +38,30 @@ async def join_group(
 ) -> Optional[GetGroup]:
     group = await GroupRepository.join_group(token=token, join_code=code)
     return group
+
+@router.put('/admin')
+async def change_admin(
+    group_id: int, 
+    new_admin_id: int,
+    token: str  = Header(None)
+) -> Optional[GetGroup]:
+    group = await GroupRepository.change_admin(token=token, group_id=group_id, new_admin_id=new_admin_id)
+    return group
+
+@router.put('/name')
+async def change_group_name(
+    group_id: int, 
+    new_name: str,
+    token: str  = Header(None)
+) -> Optional[GetGroup]:
+    group = await GroupRepository.change_group_name(token=token, group_id=group_id, new_name=new_name)
+    return group
+
+@router.delete('/')
+async def remove_user_from_group(
+    group_id: int, 
+    user_id: int,
+    token: str  = Header(None)
+) -> Optional[GetGroup]:
+    group = await GroupRepository.remove_user_from_group(token=token, group_id=group_id, user_id=user_id)
+    return group

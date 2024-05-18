@@ -97,9 +97,7 @@ class GroupRepository:
         try:
             decoded_user_id = JWTManager.decode_token(token)
             if decoded_user_id:
-                print(cls.join_codes.items())
                 for group_id, val in cls.join_codes.items():
-                    print(val[0], join_code)
                     if str(val[0]) == str(join_code):
                         async with new_session() as session:
                             async with session.begin():
@@ -125,6 +123,96 @@ class GroupRepository:
                             id_to_exclude=decoded_user_id
                             )
                 return None
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Expired token")
+        except jwt.InvalidTokenError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return None
+    
+    @classmethod
+    async def change_admin(cls, token: str, group_id: int, new_admin_id: int) -> Optional[GetGroup]:
+        try:
+            decoded_user_id = JWTManager.decode_token(token)
+            if decoded_user_id:
+                async with new_session() as session:
+                    async with session.begin():
+                        group = await session.get(Group, group_id)
+                        if not group:
+                            return None
+                        else:
+                            group.admin_id = new_admin_id
+                            await session.refresh(group)
+                            await session.commit()
+
+                            return GetGroup(
+                                id=group.id,
+                                name=group.name,
+                                admin_id=new_admin_id,
+                                users=[Person.from_dict(user) for user in group.users],
+                                id_to_exclude=new_admin_id
+                            )      
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Expired token")
+        except jwt.InvalidTokenError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return None
+    
+    @classmethod
+    async def change_group_name(cls, token: str, group_id: int, new_name: str) -> Optional[GetGroup]:
+        try:
+            decoded_user_id = JWTManager.decode_token(token)
+            if decoded_user_id:
+                async with new_session() as session:
+                    async with session.begin():
+                        group = await session.get(Group, group_id)
+                        if not group:
+                            return None
+                        else:
+                            group.name = new_name
+                            await session.refresh(group)
+                            await session.commit()
+
+                            return GetGroup(
+                                id=group.id,
+                                name=new_name,
+                                admin_id=group.admin_id,
+                                users=[Person.from_dict(user) for user in group.users],
+                                id_to_exclude=group.admin_id
+                            )      
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Expired token")
+        except jwt.InvalidTokenError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return None
+    
+    @classmethod
+    async def remove_user_from_group(cls, token: str, group_id: int, user_id: int) -> Optional[GetGroup]:
+        try:
+            decoded_user_id = JWTManager.decode_token(token)
+            if decoded_user_id:
+                async with new_session() as session:
+                    async with session.begin():
+                        group = await session.get(Group, group_id)
+
+                        if group:
+                            user_index = next((index for index, user in enumerate(group.users) if user['id'] == user_id), None)
+                            if user_index is not None:
+                                group.users.pop(user_index)
+                                session.add(group)
+                                await session.commit()
+                                # delete from user info
+
+                                return GetGroup(
+                                    id=group.id,
+                                    name=group.name,
+                                    admin_id=group.admin_id,
+                                    users=[Person.from_dict(user) for user in group.users],
+                                    id_to_exclude=decoded_user_id
+                                )
+                            else:
+                                return None
+                        else:
+                            return None
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Expired token")
         except jwt.InvalidTokenError:

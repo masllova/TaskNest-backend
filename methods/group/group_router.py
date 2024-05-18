@@ -24,6 +24,14 @@ async def get_group_by_id(
     group = await GroupRepository.get_group_by_id(token=token, group_id=id)
     return group
 
+@router.delete('/')
+async def delete_group(
+    id: int, 
+    token: str = Header(None)
+) -> bool:
+    success = await GroupRepository.delete_group(token=token, group_id=id)
+    return success
+
 @router.get('/join_code')
 async def generate_join_code(
     id: int
@@ -57,7 +65,7 @@ async def change_group_name(
     group = await GroupRepository.change_group_name(token=token, group_id=group_id, new_name=new_name)
     return group
 
-@router.delete('/')
+@router.delete('/user')
 async def remove_user_from_group(
     group_id: int, 
     user_id: int,

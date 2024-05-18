@@ -8,7 +8,7 @@ class UserBase(BaseModel):
     emoji: Optional[str] = '👤'
     birthday: Optional[date] = None
     status: Optional[str] = None
-    group_id: Optional[str] = None
+    group_id: Optional[int] = None
 
 class UserCreate(BaseModel):
     mail: str

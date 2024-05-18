@@ -18,6 +18,7 @@ class User(Model):
     emoji: Mapped[Optional[str]]
     birthday: Mapped[Optional[date]]
     status: Mapped[Optional[str]]
+    group_id: Mapped[Optional[int]]
 
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}

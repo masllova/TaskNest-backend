@@ -30,6 +30,8 @@ class GroupRepository:
                         await session.flush()
                         await session.commit()
                     await session.refresh(new_group)
+                    await UserDataManager.change_group_info(user_id=decoded_user_id, group_id=new_group.id)
+
                     return GetGroup(
                         id=new_group.id,
                         name=new_group.name,
@@ -66,6 +68,34 @@ class GroupRepository:
         except jwt.InvalidTokenError:
             raise HTTPException(status_code=401, detail="Invalid token")
         return None
+    
+    @classmethod
+    async def delete_group(cls, token: str, group_id: int) -> bool:
+        try:
+            decoded_user_id = JWTManager.decode_token(token)
+            if decoded_user_id:
+                async with new_session() as session:
+                    async with session.begin():
+                        group = await session.get(Group, group_id)
+
+                        if group:
+                            if group.admin_id == decoded_user_id:
+                                for user in group.users:
+                                    await UserDataManager.change_group_info(user_id=user['id'], group_id=None)
+                                
+                                await session.delete(group)
+                                await session.commit()
+                                session.expunge(group)
+                                return True
+                            else:
+                                return False
+                        else:
+                            return False
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Expired token")
+        except jwt.InvalidTokenError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return False
 
     @classmethod
     async def generate_join_code(cls, group_id: int) -> GroupCodeResponse:
@@ -111,7 +141,7 @@ class GroupRepository:
                                         .values(users=group.users + [author.to_dict()])
                                     )
                                     await session.commit()
-
+                                    await UserDataManager.change_group_info(user_id=decoded_user_id, group_id=group_id)
 
                             await session.refresh(group)
                         del cls.join_codes[group_id]
@@ -200,7 +230,7 @@ class GroupRepository:
                                 group.users.pop(user_index)
                                 session.add(group)
                                 await session.commit()
-                                # delete from user info
+                                await UserDataManager.change_group_info(user_id=user_id, group_id=None)
 
                                 return GetGroup(
                                     id=group.id,

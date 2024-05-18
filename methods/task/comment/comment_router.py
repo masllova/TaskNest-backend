@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Header
+from typing import Optional
+from schemes.comment_schemes import GetComment
 from methods.task.comment.comment_repository import CommentRepository
 
 router = APIRouter(
@@ -12,9 +14,9 @@ async def add_comment(
     task_id: int,
     description: str,
     token: str = Header(None)
-) -> bool:
-    success = await CommentRepository.add_one(token, task_id, description, user_id)
-    return success
+) -> Optional[GetComment]:
+    comment = await CommentRepository.add_one(token, task_id, description, user_id)
+    return comment
 
 @router.delete('/{task_id}/comment/{comment_id}/')
 async def delete_comment(
@@ -33,8 +35,6 @@ async def update_comment(
     comment_id: int,
     description: str,
     token: str = Header(None)
-) -> bool:
-    success = await CommentRepository.update_by_id(token, user_id, task_id, comment_id, description)
-    if not success:
-        raise HTTPException(status_code=404, detail="Task not found")
-    return success
+) -> Optional[GetComment]:
+    comment = await CommentRepository.update_by_id(token, user_id, task_id, comment_id, description)
+    return comment

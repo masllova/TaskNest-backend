@@ -26,8 +26,6 @@ async def get_user_info(
     user_id: Optional[int] = None
 ) -> Optional[GetUser]:
     user = await UserRepository.get_user_info(token, user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
     return user
 
 @router.put('/')
@@ -36,6 +34,4 @@ async def update_user_info(
     token: str = Header(None)
 ) -> Optional[GetUser]:
     success = await UserRepository.update_user_info(token, info)
-    if not success:
-        raise HTTPException(status_code=404, detail="User not found")
     return success

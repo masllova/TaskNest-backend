@@ -30,14 +30,14 @@ async def delete_group(
     success = await GroupRepository.delete_group(token=token)
     return success
 
-@router.get('/join_code')
+@router.get('/join_code/')
 async def generate_join_code(
     token: str = Header(None)
 ) -> Optional[GroupCodeResponse]:
     code = await GroupRepository.generate_join_code(token=token)
     return code
 
-@router.put('/join_code')
+@router.put('/join_code/')
 async def join_group(
     code: int, 
     token: str = Header(None)
@@ -45,7 +45,7 @@ async def join_group(
     group = await GroupRepository.join_group(token=token, join_code=code)
     return group
 
-@router.put('/admin')
+@router.put('/admin/')
 async def change_admin(
     new_admin_id: int,
     token: str  = Header(None)
@@ -53,7 +53,7 @@ async def change_admin(
     group = await GroupRepository.change_admin(token=token, new_admin_id=new_admin_id)
     return group
 
-@router.put('/name')
+@router.put('/name/')
 async def change_group_name(
     new_name: str,
     token: str  = Header(None)
@@ -61,7 +61,7 @@ async def change_group_name(
     group = await GroupRepository.change_group_name(token=token, new_name=new_name)
     return group
 
-@router.delete('/user')
+@router.delete('/user/')
 async def remove_user_from_group(
     user_id: int,
     token: str  = Header(None)

@@ -14,12 +14,19 @@ class TaskCollector:
         if task_data:
             tasks_models = task_data["tasks_list"]
             tasks_scemas = [GetTask.from_dict(task) for task in tasks_models]
+            client.close()
             return tasks_scemas
         else:
+            client.close()
             return []
-        client.close()
 
-    @staticmethod
+    def check_editing_rights(task: GetTask, id: int) -> bool:
+        if task.author:
+            if task.author.id == id:
+                return True
+        return False
+            
+
     def fill_user_with_task_statistics(user: GetUser, tasks: list[GetTask]) -> GetUser:
         user.completed_tasks = sum(1 for task in tasks if task.is_completed)
         user.completed_personal_tasks = sum(1 for task in tasks if task.is_completed and task.author is None)

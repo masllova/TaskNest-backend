@@ -11,7 +11,7 @@ import jwt
 
 class TaskRepository:
     @classmethod
-    async def add_one(cls, token: str, task: AddTask, id: Optional[int] = None) -> bool:
+    async def add_one(cls, token: str, task: AddTask, id: Optional[int]) -> Optional[GetTask]:
         try:
             decoded_user_id = JWTManager.decode_token(token)
             if decoded_user_id:
@@ -30,22 +30,23 @@ class TaskRepository:
 
                 if task_data:
                     tasks_count = len(task_data["tasks_list"])
-                    task_dict = GetTask(id=tasks_count + 1, task=task, author=author, comments=[]).to_dict()
-                    task_data["tasks_list"].append(task_dict)
+                    task = GetTask(id=tasks_count + 1, task=task, author=author, comments=[])
+                    task_data["tasks_list"].append(task_dict.to_dict())
 
                     collection.update_one({"_id": ObjectId(task_data["_id"])}, {"$set": task_data})
-                    return True
+                    client.close()
+                    return task
                 else:
-                    task_dict = GetTask(id=1, task=task, author=author, comments=[]).to_dict()
-                    task_data = {"user_id": user_id, "tasks_list": [task_dict]}
+                    task = GetTask(id=1, task=task, author=author, comments=[])
+                    task_data = {"user_id": user_id, "tasks_list": [task.to_dict()]}
                     collection.insert_one(task_data)
-                    return True
-                client.close()
+                    client.close()
+                    return task
         except jwt.ExpiredSignatureError:
             raise JWTManager.ETError
         except jwt.InvalidTokenError:
             raise JWTManager.ITError
-        return False
+        return None
 
     @classmethod
     async def get_all(cls, token: str, id: Optional[int] = None) -> list[GetTask]:
@@ -64,7 +65,7 @@ class TaskRepository:
         return []
 
     @classmethod
-    async def update_by_id(cls, token: str, task_id: int, data: UpdateTask) -> bool:
+    async def update_by_id(cls, token: str, task_id: int, data: UpdateTask, id: Optional[int]) -> Optional[GetTask]:
         try:
             decoded_user_id = JWTManager.decode_token(token)
             if decoded_user_id:
@@ -72,26 +73,40 @@ class TaskRepository:
                 db = client.test
                 collection = db["tasksnest-tasks"]
 
-                task_data = collection.find_one({"user_id": decoded_user_id, "tasks_list.id": task_id})
+                if id:
+                    another_author = True
+                    user_id = id
+                else:
+                    user_id = decoded_user_id
+                    another_author = False
+
+                task_data = collection.find_one({"user_id": user_id, "tasks_list.id": task_id})
 
                 if task_data:
                     task_index = SearchManager.search(task_data["tasks_list"], "id", task_id)
                     if task_index is not None:
-                        task = task_data["tasks_list"][task_index]
-                        updated_task = GetTask.from_dict(task).update(data).to_dict()
+                        task_data = task_data["tasks_list"][task_index]
+                        task = GetTask.from_dict(task)
+
+                        if another_author:
+                            if not TaskCollector.check_editing_rights(task=task, id=decoded_user_id):
+                                client.close()
+                                return None   
+                        
+                        updated_task = task.update(data).to_dict()
                         task.update(updated_task)
                         collection.update_one({"_id": ObjectId(task_data["_id"])}, {"$set": task_data})
-                        return True
-                return False
-                client.close()
+                        client.close()
+                        return task
+                return None
         except jwt.ExpiredSignatureError:
             raise JWTManager.ETError
         except jwt.InvalidTokenError:
             raise JWTManager.ITError
-        return False
+        return None
 
     @classmethod
-    async def delete_by_id(cls, token: str, task_id: int) -> bool:
+    async def delete_by_id(cls, token: str, task_id: int, id: Optional[int] = None) -> bool:
         try:
             decoded_user_id = JWTManager.decode_token(token)
             if decoded_user_id:
@@ -99,18 +114,31 @@ class TaskRepository:
                 db = client.test
                 collection = db["tasksnest-tasks"]
 
-                task_data = collection.find_one({"user_id": decoded_user_id, "tasks_list.id": task_id})
+                if id:
+                    another_author = True
+                    user_id = id
+                else:
+                    user_id = decoded_user_id
+                    another_author = False
+
+                task_data = collection.find_one({"user_id": user_id, "tasks_list.id": task_id})
 
                 if task_data:
                     task_index = SearchManager.search(task_data["tasks_list"], "id", task_id)
                     if task_index is not None:
+                        if another_author:
+                            if not TaskCollector.check_editing_rights(task=task_data["tasks_list"][task_index], id=decoded_user_id):
+                                client.close()
+                                return False   
+                            
                         task_data["tasks_list"].pop(task_index)
                         collection.update_one({"_id": ObjectId(task_data["_id"])}, {"$set": task_data})
+                        client.close()
                         return True
-                return False
                 client.close()
+                return False
         except jwt.ExpiredSignatureError:
             raise JWTManager.ETError
         except jwt.InvalidTokenError:
-            raise JWTManager>ITError
+            raise JWTManager.ITError
         return False

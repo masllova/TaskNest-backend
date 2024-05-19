@@ -14,7 +14,7 @@ class TaskRepository:
         try:
             decoded_user_id = JWTManager.decode_token(token)
             if decoded_user_id:
-                client = MongoClient()
+                client = MongoClient("mongodb://5.35.13.85:27017/")
                 db = client.test
                 collection = db["tasksnest-tasks"]
 
@@ -68,7 +68,7 @@ class TaskRepository:
         try:
             decoded_user_id = JWTManager.decode_token(token)
             if decoded_user_id:
-                client = MongoClient()
+                client = MongoClient("mongodb://5.35.13.85:27017/")
                 db = client.test
                 collection = db["tasksnest-tasks"]
 
@@ -110,7 +110,7 @@ class TaskRepository:
         try:
             decoded_user_id = JWTManager.decode_token(token)
             if decoded_user_id:
-                client = MongoClient()
+                client = MongoClient("mongodb://5.35.13.85:27017/")
                 db = client.test
                 collection = db["tasksnest-tasks"]
 

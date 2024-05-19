@@ -27,15 +27,15 @@ app.include_router(comments_router)
 app.include_router(user_router)
 app.include_router(group_router)
 
-client = MongoClient()
-db = client.my_database
-collection = db.my_collection
+# client = MongoClient()
+# db = client.my_database
+# collection = db.my_collection
 
-sorter = TaskSorter(collection)
+# sorter = TaskSorter(collection)
 
-sorter_thread = threading.Thread(target=sorter.start_sorting)
-sorter_thread.daemon = True  # Set the background thread as a daemon so that it ends when the program ends
-sorter_thread.start()
+# sorter_thread = threading.Thread(target=sorter.start_sorting)
+# sorter_thread.daemon = True  # Set the background thread as a daemon so that it ends when the program ends
+# sorter_thread.start()
 
 
 

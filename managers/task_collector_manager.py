@@ -5,7 +5,7 @@ from schemes.user_schemes import GetUser
 class TaskCollector:
     @staticmethod
     async def get_all(id: int) -> list[GetTask]:
-        client = MongoClient("mongodb://5.35.13.85:27017/")
+        client = MongoClient("mongodb://root:example@mongo:27017")
         db = client.test
         collection = db["tasksnest-tasks"]
 

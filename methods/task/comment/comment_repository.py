@@ -15,7 +15,7 @@ class CommentRepository:
         try:
             decoded_user_id = JWTManager.decode_token(token)
             if decoded_user_id:
-                client = MongoClient("mongodb://5.35.13.85:27017/")
+                client = MongoClient("mongodb://root:example@mongo:27017")
                 db = client.test
                 collection = db["tasksnest-tasks"]
 
@@ -51,7 +51,7 @@ class CommentRepository:
         try:
             decoded_user_id = JWTManager.decode_token(token)
             if decoded_user_id:
-                client = MongoClient("mongodb://5.35.13.85:27017/")
+                client = MongoClient("mongodb://root:example@mongo:27017")
                 db = client.test
                 collection = db["tasksnest-tasks"]
                 task_data = collection.find_one({"user_id": user_id})
@@ -89,7 +89,7 @@ class CommentRepository:
         try:
             decoded_user_id = JWTManager.decode_token(token)
             if decoded_user_id:
-                client = MongoClient("mongodb://5.35.13.85:27017/")
+                client = MongoClient("mongodb://root:example@mongo:27017")
                 db = client.test
                 collection = db["tasksnest-tasks"]
                 task_data = collection.find_one({"user_id": user_id})

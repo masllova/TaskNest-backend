@@ -14,9 +14,9 @@ class TaskRepository:
         try:
             decoded_user_id = JWTManager.decode_token(token)
             if decoded_user_id:
-                client = MongoClient("mongodb://mongodb:27017/")
-                db = client.test
-                collection = db["tasksnest-tasks"]
+                client = MongoClient("mongodb+srv://tasksnest:Akya3QlucuUehnFj@cluster0.emdxmco.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+                db = client['taskdb']
+                collection = db['task']
 
                 if id:
                     user_id = id
@@ -68,9 +68,9 @@ class TaskRepository:
         try:
             decoded_user_id = JWTManager.decode_token(token)
             if decoded_user_id:
-                client = MongoClient("mongodb://mongodb:27017/")
-                db = client.test
-                collection = db["tasksnest-tasks"]
+                client = MongoClient("mongodb+srv://tasksnest:Akya3QlucuUehnFj@cluster0.emdxmco.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+                db = client['taskdb']
+                collection = db['task']
 
                 if id:
                     another_author = True
@@ -110,9 +110,9 @@ class TaskRepository:
         try:
             decoded_user_id = JWTManager.decode_token(token)
             if decoded_user_id:
-                client = MongoClient("mongodb://mongodb:27017/")
-                db = client.test
-                collection = db["tasksnest-tasks"]
+                client = MongoClient("mongodb+srv://tasksnest:Akya3QlucuUehnFj@cluster0.emdxmco.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+                db = client['taskdb']
+                collection = db['task']
 
                 if id:
                     another_author = True

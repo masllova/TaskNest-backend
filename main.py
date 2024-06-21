@@ -27,9 +27,9 @@ app.include_router(comments_router)
 app.include_router(user_router)
 app.include_router(group_router)
 
-client = MongoClient("mongodb://5.35.13.85:27017/")
-db = client.my_database
-collection = db.my_collection
+client = MongoClient("mongodb+srv://tasksnest:Akya3QlucuUehnFj@cluster0.emdxmco.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+db = client['taskdb']
+collection = db['task']
 
 sorter = TaskSorter(collection)
 

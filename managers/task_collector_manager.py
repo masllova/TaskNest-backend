@@ -6,9 +6,10 @@ import os
 class TaskCollector:
     @staticmethod
     async def get_all(id: int) -> list[GetTask]:
-        client = MongoClient("mongodb://mongodb:27017/")
-        db = client["your_database_name"]
-        collection = db["tasksnest-tasks"]
+
+        client = MongoClient("mongodb+srv://tasksnest:Akya3QlucuUehnFj@cluster0.emdxmco.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+        db = client['taskdb']
+        collection = db['task']
 
         task_data = collection.find_one({"user_id": id})
 

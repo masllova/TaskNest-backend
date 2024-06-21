@@ -1,12 +1,13 @@
 from pymongo import MongoClient
 from schemes.task_schemes import GetTask
 from schemes.user_schemes import GetUser
+import os
 
 class TaskCollector:
     @staticmethod
     async def get_all(id: int) -> list[GetTask]:
-        client = MongoClient("mongodb://root:example@mongo:27017")
-        db = client.test
+        client = MongoClient("mongodb://mongodb:27017/")
+        db = client["your_database_name"]
         collection = db["tasksnest-tasks"]
 
         task_data = collection.find_one({"user_id": id})

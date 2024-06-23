@@ -5,6 +5,8 @@ Repository of the backend part of the iOS application: https://github.com/masllo
 ### Preconditions:
 Python 3
 
+API documentation (provided by Swagger UI)
+
 ---
 
 ### Run local
@@ -16,5 +18,15 @@ pip3 install -r ./requirements.txt
 
 python3 -m uvicorn main:app --reload
 
-API documentation (provided by Swagger UI)
-http://127.0.0.1:8000/docs
+---
+
+### Run Docker 
+sudo apt-get update
+
+sudo apt-get install git
+
+git clone https://github.com/masllova/TaskNest-backend.git
+
+cd TaskNest-backend
+
+docker build . --tag {tag} && docker run -p 8080:80 {tag}
